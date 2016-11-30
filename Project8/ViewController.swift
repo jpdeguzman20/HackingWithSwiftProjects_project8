@@ -47,7 +47,7 @@ class ViewController: UIViewController {
         var letterBits = [String]()
         
         // Get the file path of the level file I need to use and load it from the disk
-        if let levelFilePath = Bundle.main.path(forResource: "level1", ofType: "txt") {
+        if let levelFilePath = Bundle.main.path(forResource: "level\(level)", ofType: "txt") {
             // If it has contents, grab that too
             if let levelContents = try? String(contentsOfFile: levelFilePath) {
                 // Store each line of its contents (separated by \n) into an array of Strings
@@ -95,12 +95,63 @@ class ViewController: UIViewController {
     }
     
     func letterTapped(btn: UIButton) {
-    }
-
-    @IBAction func submitTapped(_ sender: Any) {
+        // Get the text from the title label of the button that was tapped and append it to the current text of the answer text field
+        currentAnswer.text = currentAnswer.text! + btn.titleLabel!.text!
+        // Append the button that was tapped to the activatedButtons array
+        activatedButtons.append(btn)
+        // Hide the button because it has already been used
+        btn.isHidden = true
     }
     
-    @IBAction func clearTapped(_ sender: Any) {
+    func levelUp(action: UIAlertAction!) {
+        level += 1
+        
+        // clear the solutions array before filling it up with the solutions for the next level
+        solutions.removeAll(keepingCapacity:  true)
+        
+        loadLevel()
+        
+        for btn in letterButtons {
+            btn.isHidden = false
+        }
+    }
+
+    @IBAction func submitTapped(_ sender: AnyObject) {
+        // index(of:) method will tell us which solution matches the word submitted and returns the position in which it was found
+        if let solutionPosition = solutions.index(of: currentAnswer.text!) {
+            activatedButtons.removeAll()
+            
+            // Split the answer label text by \n
+            var splitClues = answersLabel.text!.components(separatedBy: "\n")
+            // Replace the line at the solution position with the solution itself
+            splitClues[solutionPosition] = currentAnswer.text!
+            // Re-join the clues label back together
+            answersLabel.text = splitClues.joined(separator: "\n")
+            
+            // Clear answer and update score
+            currentAnswer.text = ""
+            score += 1
+            
+            // If the user gets a score of 7, that means he/she has guessed all the answers correctly. Now, prompt the user to go the next level.
+            if score % 7 == 0 {
+                let ac = UIAlertController(title: "Well done!", message: "Are you ready for the next level?", preferredStyle: .alert)
+                ac.addAction(UIAlertAction(title: "Let's go!", style: .default, handler: levelUp))
+                present(ac, animated: true)
+            }
+        }
+    }
+    
+    @IBAction func clearTapped(_ sender: AnyObject) {
+        // Remove the text from the answer text field
+        currentAnswer.text = ""
+        
+        // Make all the buttons that were tapped visible again so that the user can use them
+        for btn in activatedButtons {
+            btn.isHidden = false
+        }
+    
+        // Clear the activated buttons array
+        activatedButtons.removeAll()
     }
     
     override func didReceiveMemoryWarning() {
