@@ -20,7 +20,13 @@ class ViewController: UIViewController {
     var activatedButtons = [UIButton]()
     var solutions = [String]()
     
-    var score = 0
+    // Property observer that updates the score label whenever someone updates it
+    var score: Int = 0 {
+        didSet {
+            scoreLabel.text = "Score: \(score)"
+        }
+    }
+    
     var level = 1
 
     override func viewDidLoad() {
